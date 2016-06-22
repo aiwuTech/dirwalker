@@ -114,6 +114,48 @@ func ReadDir(dir string, ignores []string) ([]*FileInfo, error) {
 	return infos, nil
 }
 
+func ReadDir2Writer(dir string, ignores []string, writeChan chan *FileInfo) error {
+	if dir == "" {
+		dir = getCurrentPath()
+	}
+
+	if err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		logrus.Debugf("file path: %s", path)
+
+		if info == nil || err != nil {
+			return err
+		}
+
+		for _, ignore := range ignores {
+			if ignoreMatch(path, ignore) {
+				logrus.Debugf("file<%v> match ignore<%v>", path, ignore)
+				return nil
+			}
+		}
+
+		if info.IsDir() {
+			return nil
+		}
+
+		fi := &FileInfo{
+			Name: info.Name(),
+			Size: info.Size(),
+			Hash: FileSha1(path),
+		}
+
+		logrus.Debugf("File: %s", fi)
+		writeChan <- fi
+
+		return nil
+	}); err != nil {
+		return err
+	}
+	close(writeChan)
+	logrus.Debug("chan has closed")
+
+	return nil
+}
+
 // TODO match can be wrong
 // fpath can be dir, file
 // ignore can be dir, regexp

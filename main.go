@@ -40,21 +40,26 @@ import (
 	"github.com/Sirupsen/logrus"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"os"
+	"time"
+	"sync"
+	"runtime"
 )
 
 const (
-	VERSION = "0.0.1"
+	VERSION = "0.0.3"
 )
 
 var (
 	debug       = kingpin.Flag("debug", "print debug log").Short('d').Default("false").Bool()
 	version     = kingpin.Flag("version", "show version of dirwalker").Short('v').Default("false").Bool()
-	workPath    = kingpin.Flag("work", "target path").Short('w').String()
-	ignorePaths = kingpin.Flag("ignore", "ignore paths").Short('i').Strings()
+	workPath    = kingpin.Flag("work", "target path, default is current directory").Short('w').String()
+	ignorePaths = kingpin.Flag("ignore", "ignore paths, default is nil").Short('i').Strings()
 	outFile     = kingpin.Flag("out", "out file path").Short('o').Default("./files.out").String()
+	solution    = kingpin.Flag("solution", "there has 2 solutions for this tool, you can use s1 or s2 to choose which solution is using, s1 is sample, and s2 is using channel, default is s1").Short('s').Default("s1").String()
 )
 
 func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	kingpin.Parse()
 
 	if *debug {
@@ -66,14 +71,35 @@ func main() {
 		os.Exit(0)
 	}
 
-	infos, err := ReadDir(*workPath, *ignorePaths)
-	if err != nil {
-		logrus.Fatalf("read dir return error: %v", err)
+	beginTime := time.Now()
+	logrus.Infof("begin time: %v", beginTime)
+	switch *solution {
+	case "s1":
+		infos, err := ReadDir(*workPath, *ignorePaths)
+		if err != nil {
+			logrus.Fatalf("read dir return error: %v", err)
+		}
+
+		if err := WriteFileInfos(infos, *outFile); err != nil {
+			logrus.Fatalf("write file infos return error: %v", err)
+		}
+	case "s2":
+		wg := sync.WaitGroup{}
+		writeChan := make(chan *FileInfo, 1000)
+
+		go func() {
+			wg.Add(1)
+			if err := WriteFileFromReader(writeChan, *outFile); err != nil {
+				logrus.Fatalf("write file infos return error: %v", err)
+			}
+			wg.Done()
+		}()
+
+		if err := ReadDir2Writer(*workPath, *ignorePaths, writeChan); err != nil {
+			logrus.Fatalf("read dir return error: %v", err)
+		}
+		wg.Wait()
 	}
 
-	if err := WriteFileInfos(infos, *outFile); err != nil {
-		logrus.Fatalf("write file infos return error: %v", err)
-	} else {
-		logrus.Infof("file infos writed")
-	}
+	logrus.Infof("using solution[%v] cost time: %v", *solution, time.Since(beginTime))
 }
