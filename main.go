@@ -49,8 +49,8 @@ const (
 var (
 	debug       = kingpin.Flag("debug", "print debug log").Short('d').Default("false").Bool()
 	version     = kingpin.Flag("version", "show version of dirwalker").Short('v').Default("false").Bool()
-	workPath    = kingpin.Flag("work", "target path").Short('w').Default(getCurrentPath()).String()
-	ignorePaths = kingpin.Flag("ignore", "ignore path").Short('i').Strings()
+	workPath    = kingpin.Flag("work", "target path").Short('w').String()
+	ignorePaths = kingpin.Flag("ignore", "ignore paths").Short('i').Strings()
 	outFile     = kingpin.Flag("out", "out file path").Short('o').Default("./files.out").String()
 )
 

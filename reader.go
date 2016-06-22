@@ -75,6 +75,9 @@ func FileSha1(fpath string) string {
 }
 
 func ReadDir(dir string, ignores []string) ([]*FileInfo, error) {
+	if dir == "" {
+		dir = getCurrentPath()
+	}
 	infos := []*FileInfo{}
 
 	if err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
