@@ -37,9 +37,9 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"github.com/Sirupsen/logrus"
+	"fmt"
 )
 
 // if file existing, truncate it
@@ -55,12 +55,9 @@ func WriteFileInfos(infos []*FileInfo, file string) error {
 	}
 	defer f.Close()
 
-	f.WriteString(fmt.Sprint("文件名,文件哈希,文件大小"))
-	f.WriteString("\n")
-
+	f.WriteString("文件名,文件哈希,文件大小\n")
 	for _, info := range infos {
-		f.WriteString(info.String())
-		f.WriteString("\n")
+		f.WriteString(fmt.Sprintf("%s\n", info))
 	}
 
 	return nil
@@ -73,9 +70,7 @@ func WriteFileFromReader(writeChan chan *FileInfo, file string) error {
 	}
 	defer f.Close()
 
-	f.WriteString(fmt.Sprint("文件名,文件哈希,文件大小"))
-	f.WriteString("\n")
-
+	f.WriteString("文件名,文件哈希,文件大小\n")
 	for {
 		info, ok := <- writeChan
 		logrus.Debugf("from chan: %v, ok: %v", info, ok)
@@ -83,8 +78,7 @@ func WriteFileFromReader(writeChan chan *FileInfo, file string) error {
 			break
 		}
 
-		f.WriteString(info.String())
-		f.WriteString("\n")
+		f.WriteString(fmt.Sprintf("%s\n", info))
 	}
 
 	return nil
