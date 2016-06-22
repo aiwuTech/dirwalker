@@ -10,6 +10,9 @@
 代码实现简洁，运行性能高得分高
 要求通过测试代码自我证明代码能够可靠运行并正确实现上述功能
 
+## 安装方法
+    go get -u -v github.com/aiwuTech/dirwalker
+
 ## 使用方法
 
 ./dirwalker --help
