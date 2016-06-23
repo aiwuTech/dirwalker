@@ -12,10 +12,13 @@
 
 ## 安装方法
     go get -u -v github.com/aiwuTech/dirwalker
+    go build
 
 ## 使用方法
+    ./dirwalker --help
 
-./dirwalker --help
+## 测试方法
+    go test
 
 ## 解决方案1
    先读文件,再写文件,串行
